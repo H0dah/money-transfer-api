@@ -9,10 +9,11 @@ import (
 
 var accounts map[string]*Account
 var m sync.Mutex
+var url string = "https://git.io/Jm76h"
 
 func main() {
 
-	data, err := getData("https://git.io/Jm76h")
+	data, err := getData(url)
 	if err != nil {
 		log.Panic(err)
 	}
