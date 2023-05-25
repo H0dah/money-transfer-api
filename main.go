@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
 var accounts map[string]*Account
+var m sync.Mutex
 
 func main() {
 
