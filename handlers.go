@@ -58,20 +58,13 @@ func makeTransfer(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err_response)
 		return
 	}
-	accountFrom := accounts[requestBody.IdFrom]
-	accountTo := accounts[requestBody.IdTo]
 
-	m.Lock()
-	defer m.Unlock()
-	if requestBody.Amount > accountFrom.Balance {
-
-		err_response := ErrorResponse{Error: "The account didn't have enough balance!"}
+	err = accountTransfer(requestBody)
+	if err != nil {
+		err_response := ErrorResponse{Error: err.Error()}
 		json.NewEncoder(w).Encode(err_response)
 		return
 	}
-
-	accountFrom.Balance -= requestBody.Amount
-	accountTo.Balance += requestBody.Amount
 
 	message := "The Transfer is done"
 	json.NewEncoder(w).Encode(message)
