@@ -1,14 +1,12 @@
-package helpers
+package account
 
-import (
-	"testing"
-)
+import "testing"
 
 // TestGetData tests that length != 0
 func TestGetData(t *testing.T) {
 	url := "https://git.io/Jm76h"
 
-	data, err := GetData(url)
+	data, err := getData(url)
 	if len(data) == 0 {
 		t.Fatal("URL don't have data")
 	}
@@ -22,8 +20,8 @@ func TestGetData(t *testing.T) {
 func TestConstructAccountsMap(t *testing.T) {
 	url := "https://git.io/Jm76h"
 
-	data, _ := GetData(url)
-	data_mapped, err := ConstructAccountsMap(data)
+	data, _ := getData(url)
+	data_mapped, err := constructAccountsMap(data)
 
 	if len(data) != len(data_mapped) {
 		t.Fatal("constructAccountsMap test failed")

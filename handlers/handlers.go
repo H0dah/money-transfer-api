@@ -13,7 +13,8 @@ type ErrorResponse struct {
 
 // ListAccounts returns list of accounts http response
 func ListAccounts(w http.ResponseWriter, r *http.Request) {
-	err := json.NewEncoder(w).Encode(account.Accounts)
+	accounts := account.ListAccounts()
+	err := json.NewEncoder(w).Encode(accounts)
 	if err != nil {
 		err_response := ErrorResponse{Error: "couldn't encode Accounts to json"}
 		w.WriteHeader(http.StatusInternalServerError)
@@ -34,12 +35,12 @@ func validateTransferRequest(r *http.Request) (account.TransferRequest, error) {
 		return account.TransferRequest{}, errors.New("Invalid Request Body")
 	}
 
-	_, ok := account.Accounts[requestBody.IdFrom]
-	if !ok {
+	_, exists := account.GetAccount(requestBody.IdFrom)
+	if !exists {
 		return account.TransferRequest{}, errors.New("The id_from you entered doesn't exist!")
 	}
-	_, ok = account.Accounts[requestBody.IdTo]
-	if !ok {
+	_, exists = account.GetAccount(requestBody.IdTo)
+	if !exists {
 		return account.TransferRequest{}, errors.New("The id_to you entered doesn't exist!")
 
 	}
