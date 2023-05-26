@@ -16,15 +16,18 @@ type MakeTransfer struct {
 	Amount float64 `json:"amount"`
 }
 
+// listAccounts returns list of accounts http response
 func listAccounts(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(accounts)
 	if err != nil {
 		err_response := ErrorResponse{Error: "couldn't encode Accounts to json"}
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err_response)
 		return
 	}
 }
 
+// validateTransferRequest returns MakeTransfer struct and error
 func validateTransferRequest(r *http.Request) (MakeTransfer, error) {
 
 	if r.Method != "POST" {
@@ -50,11 +53,13 @@ func validateTransferRequest(r *http.Request) (MakeTransfer, error) {
 
 }
 
+// makeTransfer make transfer between accounts
 func makeTransfer(w http.ResponseWriter, r *http.Request) {
 
 	requestBody, err := validateTransferRequest(r)
 	if err != nil {
 		err_response := ErrorResponse{Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err_response)
 		return
 	}
@@ -62,6 +67,7 @@ func makeTransfer(w http.ResponseWriter, r *http.Request) {
 	err = accountTransfer(requestBody)
 	if err != nil {
 		err_response := ErrorResponse{Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err_response)
 		return
 	}
