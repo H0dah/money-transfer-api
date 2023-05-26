@@ -3,32 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
+	"money-transfer-api/account"
+	"money-transfer-api/handlers"
+	"money-transfer-api/helpers"
 	"net/http"
-	"sync"
 )
 
-var accounts map[string]*Account
-var m sync.Mutex
-var url string = "https://git.io/Jm76h"
-
 func main() {
-
-	data, err := getData(url)
+	url := "https://git.io/Jm76h"
+	data, err := helpers.GetData(url)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	accounts, err = constructAccountsMap(data)
+	account.Accounts, err = helpers.ConstructAccountsMap(data)
 	if err != nil {
 		log.Panic(err)
 	}
 	fmt.Println("The system is Ready to make a Transfer")
 
 	// Api 1 to list accounts
-	http.HandleFunc("/list", listAccounts)
+	http.HandleFunc("/list", handlers.ListAccounts)
 
 	// Api 2 to make a transfer
-	http.HandleFunc("/transfer", makeTransfer)
+	http.HandleFunc("/transfer", handlers.MakeTransfer)
 
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {

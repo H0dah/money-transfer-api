@@ -1,9 +1,10 @@
-package main
+package helpers
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"money-transfer-api/account"
 	"net/http"
 	"strconv"
 )
@@ -14,12 +15,8 @@ type AccountFromSource struct {
 	Balance string `json:"balance"`
 }
 
-type Account struct {
-	Name    string  `json:"name"`
-	Balance float64 `json:"balance"`
-}
-
-func getData(url string) ([]AccountFromSource, error) {
+// GetData gets data from given url and returned it as an object
+func GetData(url string) ([]AccountFromSource, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -39,15 +36,16 @@ func getData(url string) ([]AccountFromSource, error) {
 	return res, nil
 }
 
-func constructAccountsMap(data []AccountFromSource) (map[string]*Account, error) {
-	accounts := make(map[string]*Account)
+// ConstructAccountsMap convert data to account.Account type
+func ConstructAccountsMap(data []AccountFromSource) (map[string]*account.Account, error) {
+	accounts := make(map[string]*account.Account)
 
 	for _, v := range data {
 		balance, err := strconv.ParseFloat(v.Balance, 64)
 		if err != nil {
 			return nil, fmt.Errorf("Error while parsing balance of %s", v.Name)
 		}
-		accounts[v.Id] = &Account{
+		accounts[v.Id] = &account.Account{
 			Name:    v.Name,
 			Balance: balance,
 		}

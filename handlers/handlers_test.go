@@ -1,29 +1,33 @@
-package main
+package handlers
 
 import (
 	"bytes"
 	"encoding/json"
+	"money-transfer-api/account"
+	"money-transfer-api/helpers"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 )
 
-// test list endpoint is working correctly
+// TestListAccounts tests that list endpoint is working correctly
 func TestListAccounts(t *testing.T) {
-	data, _ := getData(url)
-	accounts, _ = constructAccountsMap(data)
+	url := "https://git.io/Jm76h"
+
+	data, _ := helpers.GetData(url)
+	account.Accounts, _ = helpers.ConstructAccountsMap(data)
 	req := httptest.NewRequest("GET", "/list", nil)
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(listAccounts)
+	handler := http.HandlerFunc(ListAccounts)
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
-	var accounts_returned map[string]*Account
+	var accounts_returned map[string]*account.Account
 	err := json.NewDecoder(rr.Body).Decode(&accounts_returned)
 	if err != nil {
 		t.Errorf("Error while decoding response body")
@@ -34,15 +38,16 @@ func TestListAccounts(t *testing.T) {
 		t.Errorf("handler returned empty body")
 	}
 	// check body is correct
-	eq := reflect.DeepEqual(accounts_returned, accounts)
+	eq := reflect.DeepEqual(accounts_returned, account.Accounts)
 	if !eq {
 		t.Errorf("handler returned wrong body")
 	}
 }
 
-// test transfer endpoint is working correctly
+// TestMakeTransfer tests transfer endpoint is working correctly
 func TestMakeTransfer(t *testing.T) {
-	body := MakeTransfer{
+	// make id var
+	body := account.TransferRequest{
 		IdFrom: "3d253e29-8785-464f-8fa0-9e4b57699db9",
 		Amount: 1,
 		IdTo:   "17f904c1-806f-4252-9103-74e7a5d3e340",
@@ -52,17 +57,17 @@ func TestMakeTransfer(t *testing.T) {
 		t.Errorf("impossible to marshall body: %s", err)
 	}
 
-	balance_before_transfer := accounts["17f904c1-806f-4252-9103-74e7a5d3e340"].Balance
+	balance_before_transfer := account.Accounts["17f904c1-806f-4252-9103-74e7a5d3e340"].Balance
 
 	req := httptest.NewRequest("POST", "/trans", bytes.NewReader(body_marshalled))
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(makeTransfer)
+	handler := http.HandlerFunc(MakeTransfer)
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("Test Failed")
 	}
 
-	balance_after_transfer := accounts["17f904c1-806f-4252-9103-74e7a5d3e340"].Balance
+	balance_after_transfer := account.Accounts["17f904c1-806f-4252-9103-74e7a5d3e340"].Balance
 
 	if !(balance_before_transfer+1 == balance_after_transfer) {
 		t.Fatalf("Test failed here, makeTransfer doesn't work correctly!")
@@ -70,20 +75,20 @@ func TestMakeTransfer(t *testing.T) {
 
 }
 
-// test that wrong request method(GET) return an error
+// TestMakeTransferWithWrongRequestMethod tests that wrong request method(GET) return an error
 func TestMakeTransferWithWrongRequestMethod(t *testing.T) {
 	req := httptest.NewRequest("GET", "/transfer", nil)
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(makeTransfer)
+	handler := http.HandlerFunc(MakeTransfer)
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status == http.StatusOK {
 		t.Errorf("Validate Request Method failed")
 	}
 }
 
-// test that not exist id return an error
+// TestMakeTransferWithNotExistID tests that not exist id returns an error
 func TestMakeTransferWithNotExistID(t *testing.T) {
-	body_with_wrong_id := MakeTransfer{
+	body_with_wrong_id := account.TransferRequest{
 		IdFrom: "1",
 		Amount: 0.0,
 		IdTo:   "1",
@@ -95,16 +100,16 @@ func TestMakeTransferWithNotExistID(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/trans", bytes.NewReader(body_with_wrong_id_marshalled))
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(makeTransfer)
+	handler := http.HandlerFunc(MakeTransfer)
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status == http.StatusOK {
 		t.Errorf("Endpoint should return an error here")
 	}
 }
 
-// test make transfer with balance bigger than available returns an error
+// TestMakeTransferWithNotAvailableBalance tests make transfer with balance bigger than available returns an error
 func TestMakeTransferWithNotAvailableBalance(t *testing.T) {
-	body_with_huge_balance := MakeTransfer{
+	body_with_huge_balance := account.TransferRequest{
 		IdFrom: "3d253e29-8785-464f-8fa0-9e4b57699db9",
 		Amount: 9999999999999999,
 		IdTo:   "17f904c1-806f-4252-9103-74e7a5d3e340",
@@ -116,7 +121,7 @@ func TestMakeTransferWithNotAvailableBalance(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "/trans", bytes.NewReader(body_with_huge_balance_marshalled))
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(makeTransfer)
+	handler := http.HandlerFunc(MakeTransfer)
 
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status == http.StatusOK {
