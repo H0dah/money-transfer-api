@@ -41,20 +41,23 @@ go test ./...
 
 - Endpoint to list all accounts in the system, request with GET method
 ```
-localhost/list
+http://localhost:8080/list
 ```
 
 
 - Endpoint to make transfer between two accounts, request with POST method
 ```
-localhost/transfer
+http://localhost:8080/transfer
 ```
+
 request body structure:
+```
 {
-    IdFrom: "id to transfer from",
-	Amount: float_number,
-	IdTo:   "id to transfer to",
-} 
+    "IdFrom": "id to transfer from",
+    "Amount": float_number,
+    "IdTo": "id to transfer to",
+}
+```
 
 ## Design Choices
 
