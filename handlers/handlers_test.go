@@ -11,11 +11,8 @@ import (
 
 // TestListAccounts tests that list endpoint is working correctly
 func TestListAccounts(t *testing.T) {
-	url := "https://git.io/Jm76h"
-	err := account.InitializeAccounts(url)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	account.InitializeAccountsFromDisk()
+
 	req := httptest.NewRequest("GET", "/list", nil)
 
 	rr := httptest.NewRecorder()
@@ -27,7 +24,7 @@ func TestListAccounts(t *testing.T) {
 	}
 
 	var accounts_returned map[string]*account.Account
-	err = json.NewDecoder(rr.Body).Decode(&accounts_returned)
+	err := json.NewDecoder(rr.Body).Decode(&accounts_returned)
 	if err != nil {
 		t.Errorf("Error while decoding response body")
 	}
@@ -45,7 +42,6 @@ func TestListAccounts(t *testing.T) {
 
 // TestMakeTransfer tests transfer endpoint is working correctly
 func TestMakeTransfer(t *testing.T) {
-	// make id var
 	body := account.TransferRequest{
 		IdFrom: "3d253e29-8785-464f-8fa0-9e4b57699db9",
 		Amount: 1,

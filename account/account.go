@@ -1,10 +1,13 @@
 package account
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 )
@@ -106,4 +109,28 @@ func AccountTransfer(transferInfo TransferRequest) error {
 func GetAccount(accountId string) (*Account, bool) {
 	account, exists := accounts[accountId]
 	return account, exists
+}
+
+// the following are used in tests
+func GetDataFromDisk() []accountFromSource {
+	data, err := os.ReadFile("../tests/accounts.json")
+	if err != nil {
+		log.Panicln(err)
+	}
+	accountFromSource := []accountFromSource{}
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&accountFromSource)
+	if err != nil {
+		log.Panicln(err)
+	}
+	return accountFromSource
+
+}
+func InitializeAccountsFromDisk() {
+	accountFromSource := GetDataFromDisk()
+	var err error
+	accounts, err = constructAccountsMap(accountFromSource)
+	if err != nil {
+		log.Panicln(err)
+	}
+
 }
